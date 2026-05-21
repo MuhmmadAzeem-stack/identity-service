@@ -1,0 +1,23 @@
+server:
+  port: 7071
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/identity_service
+    username: root
+    password: admin
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+app:
+  jwt:
+    issuer: identity-service
+    access-token-minutes: 15
+    secret: "6czkG0WPj88v56P21YgTh5pOCA9usvPv"
+
+logging:
+  level:
+    org.springframework.security: DEBUG
