@@ -1,12 +1,13 @@
 package com.omnicore.identity.permission;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public record PermissionUpdateRequest(
         @NotBlank String name,
-        @NotBlank String resource,
+        @NotBlank String module,
         @NotBlank String action,
         String description,
-        boolean active
+        @NotNull Boolean active
 ) {
 }

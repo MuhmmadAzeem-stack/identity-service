@@ -2,11 +2,11 @@ package com.omnicore.identity.permission;
 
 public record PermissionResponse(
         Long id,
-        String code,
         String name,
-        String resource,
+        String module,
         String action,
         String description,
-        boolean active
+        boolean active,
+        boolean system
 ) {
 }

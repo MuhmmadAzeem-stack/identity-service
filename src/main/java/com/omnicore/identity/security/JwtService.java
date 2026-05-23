@@ -1,5 +1,7 @@
 package com.omnicore.identity.security;
 
+import com.omnicore.identity.permission.EffectivePermissionResolver;
+import com.omnicore.identity.role.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
@@ -15,6 +17,7 @@ import java.util.stream.Collectors;
 public class JwtService {
 
     private final JwtEncoder jwtEncoder;
+    private final EffectivePermissionResolver effectivePermissionResolver;
 
     @Value("${app.jwt.issuer}")
     private String issuer;
@@ -26,33 +29,29 @@ public class JwtService {
         Instant now = Instant.now();
         Instant expiresAt = now.plusSeconds(accessTokenMinutes * 60);
 
-        Set<String> roles = userDetails.getUser().getRoles()
-                .stream()
-                .map(role -> role.getCode())
-                .collect(Collectors.toSet());
+        Set<String> roles = userDetails.getUser().getRoles().stream()
+            .filter(role -> role.isActive() && !role.isDeleted())
+            .map(Role::getName)
+            .collect(Collectors.toSet());
 
-        Set<String> permissions = userDetails.getUser().getRoles()
-                .stream()
-                .flatMap(role -> role.getPermissions().stream())
-                .map(permission -> permission.getCode())
-                .collect(Collectors.toSet());
+        Set<String> permissions = effectivePermissionResolver.resolvePermissionNames(userDetails.getUser());
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
-                .issuer(issuer)
-                .issuedAt(now)
-                .expiresAt(expiresAt)
-                .subject(String.valueOf(userDetails.getUser().getId()))
-                .claim("username", userDetails.getUser().getUsername())
-                .claim("email", userDetails.getUser().getEmail())
-                .claim("roles", roles)
-                .claim("permissions", permissions)
-                .build();
+            .issuer(issuer)
+            .issuedAt(now)
+            .expiresAt(expiresAt)
+            .subject(String.valueOf(userDetails.getUser().getId()))
+            .claim("email", userDetails.getUser().getEmail())
+            .claim("roles", roles)
+            .claim("permissions", permissions)
+            .claim("tokenVersion", userDetails.getUser().getTokenVersion())
+            .build();
 
         JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
 
         return jwtEncoder
-                .encode(JwtEncoderParameters.from(header, claims))
-                .getTokenValue();
+            .encode(JwtEncoderParameters.from(header, claims))
+            .getTokenValue();
     }
 
     public long getExpiresInSeconds() {

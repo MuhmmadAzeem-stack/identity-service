@@ -17,6 +17,13 @@ app:
     issuer: identity-service
     access-token-minutes: 15
     secret: "6czkG0WPj88v56P21YgTh5pOCA9usvPv"
+  rbac:
+    seed:
+      enabled: true
+      super-admin-email: ${INITIAL_SUPER_ADMIN_EMAIL:superadmin@example.com}
+      super-admin-password: ${INITIAL_SUPER_ADMIN_PASSWORD:}
+      allow-dev-default-password: true
+      dev-default-password: ${INITIAL_SUPER_ADMIN_DEV_PASSWORD:ChangeMe@123}
 
 logging:
   level:

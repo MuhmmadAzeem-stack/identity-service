@@ -1,15 +1,20 @@
 package com.omnicore.identity.auth;
 
+import com.omnicore.identity.auth.dto.LoginResponse;
+import com.omnicore.identity.auth.dto.MeResponse;
+import com.omnicore.identity.config.ApiPaths;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping(ApiPaths.AUTH)
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -21,22 +26,7 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public MeResponse me(Authentication authentication) {
-        Jwt jwt = (Jwt) authentication.getPrincipal();
-
-        return new MeResponse(
-                jwt.getSubject(),
-                jwt.getClaimAsString("username"),
-                jwt.getClaimAsString("email"),
-                getClaimAsList(jwt, "roles"),
-                getClaimAsList(jwt, "permissions"),
-                jwt.getIssuedAt(),
-                jwt.getExpiresAt()
-        );
-    }
-
-    private List<String> getClaimAsList(Jwt jwt, String claimName) {
-        List<String> claim = jwt.getClaimAsStringList(claimName);
-        return claim != null ? claim : List.of();
+    public MeResponse me(@AuthenticationPrincipal Jwt jwt) {
+        return authService.getCurrentUser(Long.parseLong(jwt.getSubject()));
     }
 }
