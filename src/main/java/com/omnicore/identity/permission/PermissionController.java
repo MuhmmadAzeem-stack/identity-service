@@ -1,5 +1,6 @@
 package com.omnicore.identity.permission;
 
+import com.omnicore.identity.config.ApiPaths;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -7,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/permissions")
+@RequestMapping(ApiPaths.PERMISSIONS)
 @RequiredArgsConstructor
 public class PermissionController {
 

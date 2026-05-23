@@ -3,6 +3,8 @@ package com.omnicore.identity.user;
 import com.omnicore.identity.role.Role;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 import java.util.HashSet;
@@ -19,27 +21,52 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 100)
-    private String username;
-
-    @Column(nullable = false, unique = true, length = 150)
+    @Column(name = "email", nullable = false, unique = true, length = 150)
     private String email;
 
-    @Column(nullable = false)
-    private String passwordHash;
+    @Column(name = "password", nullable = false, length = 255)
+    private String password;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
-    private UserStatus status;
-
+    @Column(name = "first_name", length = 100)
     private String firstName;
+
+    @Column(name = "last_name", length = 100)
     private String lastName;
 
-    private Instant lastLoginAt;
+    @Column(name = "phone", length = 50)
+    private String phone;
+
+    @Column(name = "is_active", nullable = false)
+    private boolean active;
+
+    @Column(name = "is_system", nullable = false)
+    private boolean system;
+
+    @Column(name = "token_version", nullable = false)
+    private int tokenVersion;
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
+
+    @Column(name = "created_by")
+    private Long createdBy;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
+
+    @Column(name = "updated_by")
+    private Long updatedBy;
+
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
+    @Column(name = "deleted_by")
+    private Long deletedBy;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -47,5 +74,10 @@ public class User {
         joinColumns = @JoinColumn(name = "user_id"),
         inverseJoinColumns = @JoinColumn(name = "role_id")
     )
+    @Builder.Default
     private Set<Role> roles = new HashSet<>();
+
+    public boolean isDeleted() {
+        return deletedAt != null;
+    }
 }

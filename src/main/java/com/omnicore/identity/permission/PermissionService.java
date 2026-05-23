@@ -14,49 +14,51 @@ public class PermissionService {
 
     private final PermissionRepository permissionRepository;
 
-    @PreAuthorize("hasAuthority('permission:read')")
+    @PreAuthorize("hasAuthority('LIST_PERMISSION')")
     @Transactional(readOnly = true)
     public List<PermissionResponse> findAll() {
-        return permissionRepository.findAll()
-                .stream()
-                .map(this::toResponse)
-                .toList();
+        return permissionRepository.findAll().stream()
+            .filter(permission -> !permission.isDeleted())
+            .map(this::toResponse)
+            .toList();
     }
 
-    @PreAuthorize("hasAuthority('permission:read')")
+    @PreAuthorize("hasAuthority('VIEW_PERMISSION')")
     @Transactional(readOnly = true)
     public PermissionResponse findById(Long id) {
         Permission permission = permissionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Permission not found"));
+            .filter(p -> !p.isDeleted())
+            .orElseThrow(() -> new RuntimeException("Permission not found"));
 
         return toResponse(permission);
     }
 
-    @PreAuthorize("hasAuthority('permission:create')")
+    @PreAuthorize("hasAuthority('CREATE_PERMISSION')")
     public PermissionResponse create(PermissionCreateRequest request) {
-        if (permissionRepository.existsByCode(request.code())) {
-            throw new RuntimeException("Permission code already exists");
+        if (permissionRepository.existsByName(request.name())) {
+            throw new RuntimeException("Permission name already exists");
         }
 
         Permission permission = Permission.builder()
-                .code(request.code())
-                .name(request.name())
-                .resource(request.resource())
-                .action(request.action())
-                .description(request.description())
-                .active(true)
-                .build();
+            .name(request.name())
+            .module(request.module())
+            .action(request.action())
+            .description(request.description())
+            .active(true)
+            .system(false)
+            .build();
 
         return toResponse(permissionRepository.save(permission));
     }
 
-    @PreAuthorize("hasAuthority('permission:update')")
+    @PreAuthorize("hasAuthority('UPDATE_PERMISSION')")
     public PermissionResponse update(Long id, PermissionUpdateRequest request) {
         Permission permission = permissionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Permission not found"));
+            .filter(p -> !p.isDeleted())
+            .orElseThrow(() -> new RuntimeException("Permission not found"));
 
         permission.setName(request.name());
-        permission.setResource(request.resource());
+        permission.setModule(request.module());
         permission.setAction(request.action());
         permission.setDescription(request.description());
         permission.setActive(request.active());
@@ -66,13 +68,13 @@ public class PermissionService {
 
     private PermissionResponse toResponse(Permission permission) {
         return new PermissionResponse(
-                permission.getId(),
-                permission.getCode(),
-                permission.getName(),
-                permission.getResource(),
-                permission.getAction(),
-                permission.getDescription(),
-                permission.isActive()
+            permission.getId(),
+            permission.getName(),
+            permission.getModule(),
+            permission.getAction(),
+            permission.getDescription(),
+            permission.isActive(),
+            permission.isSystem()
         );
     }
 }
