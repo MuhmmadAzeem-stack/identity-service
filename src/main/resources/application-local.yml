@@ -1,0 +1,10 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+
+app:
+  rbac:
+    seed:
+      allow-dev-default-password: true
+      dev-default-password: ${INITIAL_SUPER_ADMIN_DEV_PASSWORD:ChangeMe@123}

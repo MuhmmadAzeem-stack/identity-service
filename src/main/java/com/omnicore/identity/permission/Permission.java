@@ -6,6 +6,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -58,6 +60,19 @@ public class Permission {
 
     @Column(name = "deleted_by")
     private Long deletedBy;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "permission_dependencies",
+        joinColumns = @JoinColumn(name = "permission_id"),
+        inverseJoinColumns = @JoinColumn(name = "dependency_permission_id")
+    )
+    @Builder.Default
+    private Set<Permission> dependencies = new HashSet<>();
+
+    @ManyToMany(mappedBy = "dependencies", fetch = FetchType.LAZY)
+    @Builder.Default
+    private Set<Permission> usedAsDependencyBy = new HashSet<>();
 
     public boolean isDeleted() {
         return deletedAt != null;

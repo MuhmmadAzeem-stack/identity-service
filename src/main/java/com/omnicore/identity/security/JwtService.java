@@ -1,5 +1,6 @@
 package com.omnicore.identity.security;
 
+import com.omnicore.identity.common.constants.JwtClaims;
 import com.omnicore.identity.permission.EffectivePermissionResolver;
 import com.omnicore.identity.role.Role;
 import lombok.RequiredArgsConstructor;
@@ -41,10 +42,10 @@ public class JwtService {
             .issuedAt(now)
             .expiresAt(expiresAt)
             .subject(String.valueOf(userDetails.getUser().getId()))
-            .claim("email", userDetails.getUser().getEmail())
-            .claim("roles", roles)
-            .claim("permissions", permissions)
-            .claim("tokenVersion", userDetails.getUser().getTokenVersion())
+            .claim(JwtClaims.CLAIM_EMAIL, userDetails.getUser().getEmail())
+            .claim(JwtClaims.CLAIM_ROLES, roles)
+            .claim(JwtClaims.CLAIM_PERMISSIONS, permissions)
+            .claim(JwtClaims.CLAIM_TOKEN_VERSION, userDetails.getUser().getTokenVersion())
             .build();
 
         JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();

@@ -1,6 +1,6 @@
 package com.omnicore.identity.config;
 
-import com.omnicore.identity.seed.RbacSeedProperties;
+import com.omnicore.identity.rbac.RbacSeedProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 

@@ -1,75 +1,90 @@
-package com.omnicore.identity.seed;
-
-import java.util.List;
-
-public final class CorePermissionSeeds {
-
-    public static final String SUPER_ADMIN_ROLE = "SUPER_ADMIN";
-
-    private CorePermissionSeeds() {
-    }
-
-    public static List<CorePermissionSeed> all() {
-        return List.of(
-            user("LIST_USER", "LIST", "List users"),
-            user("VIEW_USER", "VIEW", "View user details"),
-            user("CREATE_USER", "CREATE", "Create users"),
-            user("UPDATE_USER", "UPDATE", "Update users"),
-            user("DELETE_USER", "DELETE", "Delete users"),
-            permission("ASSIGN_USER_ROLE", "USER_ROLE", "ASSIGN", "Assign roles to users"),
-            permission("REMOVE_USER_ROLE", "USER_ROLE", "REMOVE", "Remove roles from users"),
-            user("RESET_USER_PASSWORD", "RESET_PASSWORD", "Reset user passwords"),
-            user("ACTIVATE_USER", "ACTIVATE", "Activate users"),
-            user("DEACTIVATE_USER", "DEACTIVATE", "Deactivate users"),
-            user("VIEW_USER_PERMISSION", "VIEW_PERMISSION", "View effective user permissions"),
-
-            role("LIST_ROLE", "LIST", "List roles"),
-            role("VIEW_ROLE", "VIEW", "View role details"),
-            role("CREATE_ROLE", "CREATE", "Create roles"),
-            role("UPDATE_ROLE", "UPDATE", "Update roles"),
-            role("DELETE_ROLE", "DELETE", "Delete roles"),
-            permission("ASSIGN_ROLE_PERMISSION", "ROLE_PERMISSION", "ASSIGN", "Assign permissions to roles"),
-            permission("REMOVE_ROLE_PERMISSION", "ROLE_PERMISSION", "REMOVE", "Remove permissions from roles"),
-
-            permission("LIST_PERMISSION", "PERMISSION", "LIST", "List permissions"),
-            permission("VIEW_PERMISSION", "PERMISSION", "VIEW", "View permission details"),
-            permission("CREATE_PERMISSION", "PERMISSION", "CREATE", "Create permissions"),
-            permission("UPDATE_PERMISSION", "PERMISSION", "UPDATE", "Update permissions"),
-            permission("DELETE_PERMISSION", "PERMISSION", "DELETE", "Delete permissions"),
-            permission("ASSIGN_PERMISSION_DEPENDENCY", "PERMISSION_DEPENDENCY", "ASSIGN", "Assign permission dependencies"),
-            permission("REMOVE_PERMISSION_DEPENDENCY", "PERMISSION_DEPENDENCY", "REMOVE", "Remove permission dependencies"),
-
-            menu("LIST_MENU", "LIST", "List menus"),
-            menu("VIEW_MENU", "VIEW", "View menu details"),
-            menu("CREATE_MENU", "CREATE", "Create menus"),
-            menu("UPDATE_MENU", "UPDATE", "Update menus"),
-            menu("DELETE_MENU", "DELETE", "Delete menus"),
-            menu("REORDER_MENU", "REORDER", "Reorder menus"),
-            menu("ACTIVATE_MENU", "ACTIVATE", "Activate menus"),
-            menu("DEACTIVATE_MENU", "DEACTIVATE", "Deactivate menus"),
-
-            audit("LIST_AUDIT_LOG", "LIST", "List audit logs"),
-            audit("VIEW_AUDIT_LOG", "VIEW", "View audit log details")
-        );
-    }
-
-    private static CorePermissionSeed user(String name, String action, String description) {
-        return new CorePermissionSeed(name, "USER", action, description);
-    }
-
-    private static CorePermissionSeed role(String name, String action, String description) {
-        return new CorePermissionSeed(name, "ROLE", action, description);
-    }
-
-    private static CorePermissionSeed permission(String name, String module, String action, String description) {
-        return new CorePermissionSeed(name, module, action, description);
-    }
-
-    private static CorePermissionSeed menu(String name, String action, String description) {
-        return new CorePermissionSeed(name, "MENU", action, description);
-    }
-
-    private static CorePermissionSeed audit(String name, String action, String description) {
-        return new CorePermissionSeed(name, "AUDIT_LOG", action, description);
-    }
-}
+package com.omnicore.identity.seed;
+
+import com.omnicore.identity.rbac.RbacAction;
+import com.omnicore.identity.rbac.RbacModule;
+import com.omnicore.identity.rbac.AuthorityNames;
+
+import java.util.List;
+
+public final class CorePermissionSeeds {
+
+    private CorePermissionSeeds() {
+    }
+
+    public static List<CorePermissionSeed> all() {
+        return List.of(
+            user(RbacAction.LIST, "List users"),
+            user(RbacAction.VIEW, "View user details"),
+            user(RbacAction.CREATE, "Create users"),
+            user(RbacAction.UPDATE, "Update users"),
+            user(RbacAction.DELETE, "Delete users"),
+            permission(RbacAction.ASSIGN, RbacModule.USER_ROLE, "Assign roles to users"),
+            permission(RbacAction.REMOVE, RbacModule.USER_ROLE, "Remove roles from users"),
+            user(RbacAction.RESET_PASSWORD, "Reset user passwords"),
+            user(RbacAction.ACTIVATE, "Activate users"),
+            user(RbacAction.DEACTIVATE, "Deactivate users"),
+            user(RbacAction.VIEW_PERMISSION, "View effective user permissions"),
+
+            role(RbacAction.LIST, "List roles"),
+            role(RbacAction.VIEW, "View role details"),
+            role(RbacAction.CREATE, "Create roles"),
+            role(RbacAction.UPDATE, "Update roles"),
+            role(RbacAction.DELETE, "Delete roles"),
+            permission(RbacAction.ASSIGN, RbacModule.ROLE_PERMISSION, "Assign permissions to roles"),
+            permission(RbacAction.REMOVE, RbacModule.ROLE_PERMISSION, "Remove permissions from roles"),
+
+            permission(RbacAction.LIST, RbacModule.PERMISSION, "List permissions"),
+            permission(RbacAction.VIEW, RbacModule.PERMISSION, "View permission details"),
+            permission(RbacAction.CREATE, RbacModule.PERMISSION, "Create permissions"),
+            permission(RbacAction.UPDATE, RbacModule.PERMISSION, "Update permissions"),
+            permission(RbacAction.DELETE, RbacModule.PERMISSION, "Delete permissions"),
+            permission(RbacAction.ASSIGN, RbacModule.PERMISSION_DEPENDENCY, "Assign permission dependencies"),
+            permission(RbacAction.REMOVE, RbacModule.PERMISSION_DEPENDENCY, "Remove permission dependencies"),
+
+            menu(RbacAction.LIST, "List menus"),
+            menu(RbacAction.VIEW, "View menu details"),
+            menu(RbacAction.CREATE, "Create menus"),
+            menu(RbacAction.UPDATE, "Update menus"),
+            menu(RbacAction.DELETE, "Delete menus"),
+            menu(RbacAction.REORDER, "Reorder menus"),
+            menu(RbacAction.ACTIVATE, "Activate menus"),
+            menu(RbacAction.DEACTIVATE, "Deactivate menus"),
+
+            audit(RbacAction.LIST, "List audit logs"),
+            audit(RbacAction.VIEW, "View audit log details")
+        );
+    }
+
+    private static CorePermissionSeed user(RbacAction action, String description) {
+        return seed(AuthorityNames.userAuthority(action), RbacModule.USER, action, description);
+    }
+
+    private static CorePermissionSeed role(RbacAction action, String description) {
+        return seed(AuthorityNames.authority(action, RbacModule.ROLE), RbacModule.ROLE, action, description);
+    }
+
+    private static CorePermissionSeed permission(
+        RbacAction action,
+        RbacModule module,
+        String description
+    ) {
+        return seed(AuthorityNames.authority(action, module), module, action, description);
+    }
+
+    private static CorePermissionSeed menu(RbacAction action, String description) {
+        return seed(AuthorityNames.authority(action, RbacModule.MENU), RbacModule.MENU, action, description);
+    }
+
+    private static CorePermissionSeed audit(RbacAction action, String description) {
+        return seed(AuthorityNames.authority(action, RbacModule.AUDIT_LOG), RbacModule.AUDIT_LOG, action, description);
+    }
+
+    private static CorePermissionSeed seed(
+        String name,
+        RbacModule module,
+        RbacAction action,
+        String description
+    ) {
+        return new CorePermissionSeed(name, module.name(), action.name(), description);
+    }
+}
