@@ -1,5 +1,7 @@
 package com.omnicore.identity.seed;
 
+import com.omnicore.identity.rbac.AuthorityNames;
+
 import java.util.List;
 
 public final class CorePermissionDependencySeeds {
@@ -9,34 +11,34 @@ public final class CorePermissionDependencySeeds {
 
     public static List<PermissionDependencySeed> all() {
         return List.of(
-            dep("CREATE_USER", "LIST_ROLE"),
-            dep("UPDATE_USER", "VIEW_USER"),
-            dep("UPDATE_USER", "LIST_ROLE"),
-            dep("DELETE_USER", "VIEW_USER"),
-            dep("ASSIGN_USER_ROLE", "LIST_ROLE"),
-            dep("VIEW_USER_PERMISSION", "VIEW_USER"),
+            dep(AuthorityNames.CREATE_USER, AuthorityNames.LIST_ROLE),
+            dep(AuthorityNames.UPDATE_USER, AuthorityNames.VIEW_USER),
+            dep(AuthorityNames.UPDATE_USER, AuthorityNames.LIST_ROLE),
+            dep(AuthorityNames.DELETE_USER, AuthorityNames.VIEW_USER),
+            dep(AuthorityNames.ASSIGN_USER_ROLE, AuthorityNames.LIST_ROLE),
+            dep(AuthorityNames.VIEW_USER_PERMISSION, AuthorityNames.VIEW_USER),
 
-            dep("CREATE_ROLE", "LIST_PERMISSION"),
-            dep("UPDATE_ROLE", "VIEW_ROLE"),
-            dep("UPDATE_ROLE", "LIST_PERMISSION"),
-            dep("DELETE_ROLE", "VIEW_ROLE"),
-            dep("ASSIGN_ROLE_PERMISSION", "LIST_PERMISSION"),
+            dep(AuthorityNames.CREATE_ROLE, AuthorityNames.LIST_PERMISSION),
+            dep(AuthorityNames.UPDATE_ROLE, AuthorityNames.VIEW_ROLE),
+            dep(AuthorityNames.UPDATE_ROLE, AuthorityNames.LIST_PERMISSION),
+            dep(AuthorityNames.DELETE_ROLE, AuthorityNames.VIEW_ROLE),
+            dep(AuthorityNames.ASSIGN_ROLE_PERMISSION, AuthorityNames.LIST_PERMISSION),
 
-            dep("CREATE_PERMISSION", "LIST_PERMISSION"),
-            dep("UPDATE_PERMISSION", "VIEW_PERMISSION"),
-            dep("DELETE_PERMISSION", "VIEW_PERMISSION"),
-            dep("ASSIGN_PERMISSION_DEPENDENCY", "LIST_PERMISSION"),
-            dep("REMOVE_PERMISSION_DEPENDENCY", "LIST_PERMISSION"),
+            dep(AuthorityNames.CREATE_PERMISSION, AuthorityNames.LIST_PERMISSION),
+            dep(AuthorityNames.UPDATE_PERMISSION, AuthorityNames.VIEW_PERMISSION),
+            dep(AuthorityNames.DELETE_PERMISSION, AuthorityNames.VIEW_PERMISSION),
+            dep(AuthorityNames.ASSIGN_PERMISSION_DEPENDENCY, AuthorityNames.LIST_PERMISSION),
+            dep(AuthorityNames.REMOVE_PERMISSION_DEPENDENCY, AuthorityNames.LIST_PERMISSION),
 
-            dep("CREATE_MENU", "LIST_PERMISSION"),
-            dep("UPDATE_MENU", "VIEW_MENU"),
-            dep("UPDATE_MENU", "LIST_PERMISSION"),
-            dep("DELETE_MENU", "VIEW_MENU"),
-            dep("REORDER_MENU", "VIEW_MENU"),
-            dep("ACTIVATE_MENU", "VIEW_MENU"),
-            dep("DEACTIVATE_MENU", "VIEW_MENU"),
+            dep(AuthorityNames.CREATE_MENU, AuthorityNames.LIST_PERMISSION),
+            dep(AuthorityNames.UPDATE_MENU, AuthorityNames.VIEW_MENU),
+            dep(AuthorityNames.UPDATE_MENU, AuthorityNames.LIST_PERMISSION),
+            dep(AuthorityNames.DELETE_MENU, AuthorityNames.VIEW_MENU),
+            dep(AuthorityNames.REORDER_MENU, AuthorityNames.VIEW_MENU),
+            dep(AuthorityNames.ACTIVATE_MENU, AuthorityNames.VIEW_MENU),
+            dep(AuthorityNames.DEACTIVATE_MENU, AuthorityNames.VIEW_MENU),
 
-            dep("VIEW_AUDIT_LOG", "LIST_AUDIT_LOG")
+            dep(AuthorityNames.VIEW_AUDIT_LOG, AuthorityNames.LIST_AUDIT_LOG)
         );
     }
 

@@ -4,6 +4,7 @@ import com.omnicore.identity.role.Role;
 import com.omnicore.identity.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -13,14 +14,15 @@ import java.util.stream.Collectors;
 public class EffectivePermissionResolver {
 
     private final PermissionRepository permissionRepository;
-    private final PermissionDependencyRepository permissionDependencyRepository;
 
+    @Transactional(readOnly = true)
     public Set<String> resolvePermissionNames(User user) {
         return resolvePermissions(user).stream()
             .map(Permission::getName)
             .collect(Collectors.toCollection(TreeSet::new));
     }
 
+    @Transactional(readOnly = true)
     public Set<Permission> resolvePermissions(User user) {
         if (user == null || !user.isActive() || user.isDeleted()) {
             return Set.of();
@@ -52,20 +54,18 @@ public class EffectivePermissionResolver {
 
         while (!pending.isEmpty()) {
             Long permissionId = pending.removeFirst();
-            List<PermissionDependency> dependencies =
-                permissionDependencyRepository.findByIdPermissionIdIn(List.of(permissionId));
+            Permission permission = permissionRepository.findById(permissionId).orElse(null);
+            if (permission == null) {
+                continue;
+            }
 
-            for (PermissionDependency dependency : dependencies) {
-                Permission dependencyPermission = dependency.getDependencyPermission();
-                if (dependencyPermission == null
-                    || !dependencyPermission.isActive()
-                    || dependencyPermission.isDeleted()) {
+            for (Permission dependency : permission.getDependencies()) {
+                if (!dependency.isActive() || dependency.isDeleted()) {
                     continue;
                 }
 
-                Long dependencyId = dependencyPermission.getId();
-                if (effectiveIds.add(dependencyId)) {
-                    pending.addLast(dependencyId);
+                if (effectiveIds.add(dependency.getId())) {
+                    pending.addLast(dependency.getId());
                 }
             }
         }

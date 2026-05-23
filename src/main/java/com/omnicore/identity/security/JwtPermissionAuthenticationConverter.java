@@ -1,5 +1,7 @@
 package com.omnicore.identity.security;
 
+import com.omnicore.identity.common.constants.JwtClaims;
+import com.omnicore.identity.common.constants.SecurityConstants;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -19,20 +21,24 @@ public class JwtPermissionAuthenticationConverter implements Converter<Jwt, Abst
     public AbstractAuthenticationToken convert(Jwt jwt) {
         Collection<GrantedAuthority> authorities = new ArrayList<>();
 
-        List<String> roles = jwt.getClaimAsStringList("roles");
+        List<String> roles = jwt.getClaimAsStringList(JwtClaims.CLAIM_ROLES);
         if (roles != null) {
             roles.stream()
-                .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                .map(role -> new SimpleGrantedAuthority(SecurityConstants.ROLE_PREFIX + role))
                 .forEach(authorities::add);
         }
 
-        List<String> permissions = jwt.getClaimAsStringList("permissions");
+        List<String> permissions = jwt.getClaimAsStringList(JwtClaims.CLAIM_PERMISSIONS);
         if (permissions != null) {
             permissions.stream()
                 .map(SimpleGrantedAuthority::new)
                 .forEach(authorities::add);
         }
 
-        return new JwtAuthenticationToken(jwt, authorities, jwt.getClaimAsString("email"));
+        return new JwtAuthenticationToken(
+            jwt,
+            authorities,
+            jwt.getClaimAsString(JwtClaims.CLAIM_EMAIL)
+        );
     }
 }

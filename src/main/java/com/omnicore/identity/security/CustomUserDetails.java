@@ -1,5 +1,6 @@
 package com.omnicore.identity.security;
 
+import com.omnicore.identity.common.constants.SecurityConstants;
 import com.omnicore.identity.permission.EffectivePermissionResolver;
 import com.omnicore.identity.role.Role;
 import com.omnicore.identity.user.User;
@@ -24,7 +25,7 @@ public class CustomUserDetails implements UserDetails {
 
         for (Role role : user.getRoles()) {
             if (role.isActive() && !role.isDeleted()) {
-                auths.add(new SimpleGrantedAuthority("ROLE_" + role.getName()));
+                auths.add(new SimpleGrantedAuthority(SecurityConstants.ROLE_PREFIX + role.getName()));
             }
         }
 
