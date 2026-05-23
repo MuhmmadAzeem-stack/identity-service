@@ -26,4 +26,14 @@ public interface PermissionRepository extends JpaRepository<Permission, Long>, J
     List<Permission> findAllByIdInAndActiveTrueAndDeletedAtIsNull(Collection<Long> ids);
 
     List<Permission> findAllBySystemTrueAndActiveTrueAndDeletedAtIsNull();
+
+    Optional<Permission> findByIdAndDeletedAtIsNull(Long id);
+
+    @Query("""
+        SELECT p FROM Permission p
+        LEFT JOIN FETCH p.dependencies
+        WHERE p.id = :id
+        AND p.deletedAt IS NULL
+        """)
+    Optional<Permission> findByIdWithDependencies(@Param("id") Long id);
 }

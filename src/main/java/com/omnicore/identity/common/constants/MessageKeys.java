@@ -3,6 +3,8 @@ package com.omnicore.identity.common.constants;
 public final class MessageKeys {
 
     public static final String PERMISSIONS_FETCHED = "permission.list.success";
+    public static final String PERMISSION_FETCHED = "permission.detail.success";
+    public static final String PERMISSION_NOT_FOUND = "permission.notFound";
     public static final String INVALID_EMAIL_OR_PASSWORD = "auth.invalidEmailOrPassword";
     public static final String USER_ACCOUNT_INACTIVE = "auth.userAccountInactive";
     public static final String TOKEN_VERSION_INVALID = "auth.tokenVersionInvalid";

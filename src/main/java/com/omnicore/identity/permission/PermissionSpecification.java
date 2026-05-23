@@ -1,6 +1,8 @@
 package com.omnicore.identity.permission;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
 
@@ -22,7 +24,8 @@ public final class PermissionSpecification {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            predicates.add(criteriaBuilder.isNull(root.get("deletedAt")));
+            // Soft-deleted permissions are never listed, including when isActive=false.
+            predicates.add(notDeleted(root, criteriaBuilder));
 
             boolean activeValue = active != null ? active : true;
             predicates.add(criteriaBuilder.equal(root.get("active"), activeValue));
@@ -51,5 +54,9 @@ public final class PermissionSpecification {
 
             return criteriaBuilder.and(predicates.toArray(Predicate[]::new));
         };
+    }
+
+    private static Predicate notDeleted(Root<Permission> root, CriteriaBuilder criteriaBuilder) {
+        return criteriaBuilder.isNull(root.get("deletedAt"));
     }
 }

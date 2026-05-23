@@ -10,6 +10,8 @@ import com.omnicore.identity.permission.dto.PermissionListQuery;
 import com.omnicore.identity.permission.dto.PermissionListResponse;
 import com.omnicore.identity.permission.dto.ReplacePermissionDependenciesRequest;
 import com.omnicore.identity.permission.dto.UpdatePermissionRequest;
+import com.omnicore.identity.permission.error.PermissionNotFoundException;
+import com.omnicore.identity.role.Role;
 import com.omnicore.identity.role.RolePermissionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -20,6 +22,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -64,8 +68,28 @@ public class PermissionService {
         return PageResponse.from(responsePage);
     }
 
+    @Transactional(readOnly = true)
     public PermissionDetailResponse getPermissionDetail(Long id) {
-        throw new UnsupportedOperationException(messageResolver.resolve(MessageKeys.NOT_IMPLEMENTED_YET));
+        if (id == null) {
+            throw new IllegalArgumentException("Permission ID must not be null");
+        }
+
+        // Returns active and inactive permissions, but soft-deleted records are treated as not found.
+        Permission permission = permissionRepository.findByIdAndDeletedAtIsNull(id)
+            .orElseThrow(PermissionNotFoundException::new);
+
+        List<Permission> dependencies =
+            permissionDependencyRepository.findActiveDependenciesByPermissionId(id);
+        List<Permission> usedAsDependencyBy =
+            permissionDependencyRepository.findActivePermissionsDependingOn(id);
+        List<Role> usedByRoles = rolePermissionRepository.findActiveRolesByPermissionId(id);
+
+        return permissionMapper.toDetailResponse(
+            permission,
+            dependencies.stream().map(permissionMapper::toSummary).toList(),
+            usedAsDependencyBy.stream().map(permissionMapper::toSummary).toList(),
+            usedByRoles.stream().map(permissionMapper::toRoleSummary).toList()
+        );
     }
 
     public PermissionDetailResponse createPermission(CreatePermissionRequest request, Long currentUserId) {

@@ -3,7 +3,8 @@ package com.omnicore.identity.permission;
 import com.omnicore.identity.permission.dto.PermissionDetailResponse;
 import com.omnicore.identity.permission.dto.PermissionListResponse;
 import com.omnicore.identity.permission.dto.PermissionSummaryResponse;
-import com.omnicore.identity.permission.dto.RoleSummaryResponse;
+import com.omnicore.identity.role.Role;
+import com.omnicore.identity.role.dto.RoleSummaryResponse;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -20,6 +21,16 @@ public class PermissionMapper {
             permission.getDescription(),
             permission.isActive(),
             permission.isSystem()
+        );
+    }
+
+    public RoleSummaryResponse toRoleSummary(Role role) {
+        return new RoleSummaryResponse(
+            role.getId(),
+            role.getName(),
+            role.getDescription(),
+            role.isActive(),
+            role.isSystem()
         );
     }
 
