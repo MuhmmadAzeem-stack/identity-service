@@ -115,6 +115,16 @@ public class GlobalExceptionHandler {
     return ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
   }
 
+
+  @ExceptionHandler(ResourceNotFoundException.class)
+  public ProblemDetail resourceNotFound(ResourceNotFoundException ex) {
+    return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+  }
+  @ExceptionHandler(BadRequestException.class)
+  public ProblemDetail badRequestException(BadRequestException ex){
+    return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,ex.getMessage());
+  }
+
   @ExceptionHandler(MethodArgumentTypeMismatchException.class)
   public ProblemDetail handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
     return ProblemDetail.forStatusAndDetail(
