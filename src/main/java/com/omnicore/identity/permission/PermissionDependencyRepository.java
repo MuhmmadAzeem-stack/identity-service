@@ -56,6 +56,19 @@ public interface PermissionDependencyRepository extends Repository<Permission, L
       nativeQuery = true)
   void deleteByPermissionId(@Param("permissionId") Long permissionId);
 
+  @Modifying(flushAutomatically = true)
+  @Query(
+      value =
+          """
+            DELETE FROM permission_dependencies
+            WHERE permission_id = :permissionId
+            AND dependency_permission_id = :dependencyPermissionId
+            """,
+      nativeQuery = true)
+  void deleteByPermissionIdAndDependencyPermissionId(
+      @Param("permissionId") Long permissionId,
+      @Param("dependencyPermissionId") Long dependencyPermissionId);
+
   @Query(
       value =
           """

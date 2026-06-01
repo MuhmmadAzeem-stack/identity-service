@@ -107,4 +107,27 @@ public class PermissionController {
 
     return ApiResponse.success(messageResolver.resolve(MessageKeys.PERMISSION_ACTIVATED), data);
   }
+
+  @PutMapping("/{id}/dependencies")
+  @PreAuthorize(SecurityExpressions.HAS_ASSIGN_PERMISSION_DEPENDENCY)
+  public ApiResponse<PermissionDetailResponse> replaceDependencies(
+      @PathVariable Long id, @Valid @RequestBody ReplacePermissionDependenciesRequest request) {
+
+    PermissionDetailResponse data =
+        permissionService.replaceDependencies(id, request, securityUtils.getCurrentUserId());
+
+    return ApiResponse.success(
+        messageResolver.resolve(MessageKeys.PERMISSION_DEPENDENCIES_UPDATED), data);
+  }
+
+  @DeleteMapping("/{id}/dependencies/{dependencyId}")
+  @PreAuthorize(SecurityExpressions.HAS_REMOVE_PERMISSION_DEPENDENCY)
+  public ApiResponse<Void> removeDependency(
+      @PathVariable Long id, @PathVariable Long dependencyId) {
+
+    permissionService.removeDependency(id, dependencyId, securityUtils.getCurrentUserId());
+
+    return ApiResponse.success(
+        messageResolver.resolve(MessageKeys.PERMISSION_DEPENDENCY_REMOVED), null);
+  }
 }

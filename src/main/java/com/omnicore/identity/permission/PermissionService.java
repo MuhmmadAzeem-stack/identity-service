@@ -200,15 +200,43 @@ public class PermissionService {
     return buildDetailResponse(permissionRepository.save(permission));
   }
 
+  @Transactional
   public PermissionDetailResponse replaceDependencies(
       Long id, ReplacePermissionDependenciesRequest request, Long currentUserId) {
-    throw new UnsupportedOperationException(
-        messageResolver.resolve(MessageKeys.NOT_IMPLEMENTED_YET));
+    Permission permission =
+        permissionRepository
+            .findByIdAndDeletedAtIsNull(id)
+            .orElseThrow(PermissionNotFoundException::new);
+
+    if (!permission.isActive()) {
+      throw new PermissionBusinessException(PermissionErrorCode.PERMISSION_INACTIVE);
+    }
+
+    permission.setUpdatedBy(currentUserId);
+    return buildDetailResponse(
+        replaceDependenciesOnPermission(permission, request.dependencyIds()));
   }
 
+  @Transactional
   public void removeDependency(Long id, Long dependencyId, Long currentUserId) {
-    throw new UnsupportedOperationException(
-        messageResolver.resolve(MessageKeys.NOT_IMPLEMENTED_YET));
+    Permission permission =
+        permissionRepository.findById(id).orElseThrow(PermissionNotFoundException::new);
+
+    permissionRepository
+        .findById(dependencyId)
+        .orElseThrow(
+            () ->
+                new PermissionBusinessException(
+                    PermissionErrorCode.DEPENDENCY_PERMISSION_NOT_FOUND));
+
+    if (permissionDependencyRepository.countByPermissionIdAndDependencyPermissionId(
+            id, dependencyId)
+        > 0) {
+      permissionDependencyRepository.deleteByPermissionIdAndDependencyPermissionId(
+          id, dependencyId);
+      permission.setUpdatedBy(currentUserId);
+      permissionRepository.save(permission);
+    }
   }
 
   private PermissionCreateResult saveWithDependencies(
