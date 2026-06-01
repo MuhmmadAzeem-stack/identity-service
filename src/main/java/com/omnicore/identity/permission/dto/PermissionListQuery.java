@@ -9,6 +9,4 @@ public record PermissionListQuery(
     int page,
     int size,
     String sortBy,
-    String sortDirection
-) {
-}
+    String sortDirection) {}

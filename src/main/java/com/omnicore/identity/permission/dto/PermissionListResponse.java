@@ -13,6 +13,4 @@ public record PermissionListResponse(
     long dependencyCount,
     long roleCount,
     Instant createdAt,
-    Instant updatedAt
-) {
-}
+    Instant updatedAt) {}
