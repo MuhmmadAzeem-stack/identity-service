@@ -10,6 +10,8 @@ public final class MessageKeys {
   public static final String PERMISSION_UPDATED = "permission.update.success";
   public static final String PERMISSION_DELETED = "permission.delete.success";
   public static final String PERMISSION_ACTIVATED = "permission.activate.success";
+  public static final String PERMISSION_DEPENDENCIES_UPDATED = "permission.dependencies.update.success";
+  public static final String PERMISSION_DEPENDENCY_REMOVED = "permission.dependency.remove.success";
   public static final String PERMISSION_ALREADY_EXISTS = "permission.alreadyExists";
   public static final String PERMISSION_INACTIVE = "permission.inactive";
   public static final String PERMISSION_ALREADY_ACTIVE = "permission.alreadyActive";
