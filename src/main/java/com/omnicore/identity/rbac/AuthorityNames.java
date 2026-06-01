@@ -35,6 +35,8 @@ public final class AuthorityNames {
       authority(RbacAction.UPDATE, RbacModule.PERMISSION);
   public static final String DELETE_PERMISSION =
       authority(RbacAction.DELETE, RbacModule.PERMISSION);
+  public static final String VIEW_DELETED_PERMISSION =
+      authority(RbacAction.VIEW_DELETED, RbacModule.PERMISSION);
   public static final String ASSIGN_PERMISSION_DEPENDENCY =
       authority(RbacAction.ASSIGN, RbacModule.PERMISSION_DEPENDENCY);
   public static final String REMOVE_PERMISSION_DEPENDENCY =

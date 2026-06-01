@@ -6,6 +6,7 @@ public final class SecurityExpressions {
   public static final String HAS_VIEW_PERMISSION = "hasAuthority('VIEW_PERMISSION')";
   public static final String HAS_CREATE_PERMISSION = "hasAuthority('CREATE_PERMISSION')";
   public static final String HAS_UPDATE_PERMISSION = "hasAuthority('UPDATE_PERMISSION')";
+  public static final String HAS_DELETE_PERMISSION = "hasAuthority('DELETE_PERMISSION')";
   public static final String HAS_LIST_ROLE = "hasAuthority('LIST_ROLE')";
   public static final String HAS_VIEW_ROLE = "hasAuthority('VIEW_ROLE')";
   public static final String HAS_CREATE_ROLE = "hasAuthority('CREATE_ROLE')";

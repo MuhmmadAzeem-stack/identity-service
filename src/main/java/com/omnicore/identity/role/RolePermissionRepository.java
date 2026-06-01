@@ -14,6 +14,18 @@ public interface RolePermissionRepository extends Repository<Role, Long> {
   long countByPermissionId(@Param("permissionId") Long permissionId);
 
   @Query(
+      value =
+          """
+            SELECT COUNT(*) FROM role_permissions rp
+            INNER JOIN roles r ON r.id = rp.role_id
+            WHERE rp.permission_id = :permissionId
+            AND r.is_active = true
+            AND r.deleted_at IS NULL
+            """,
+      nativeQuery = true)
+  long countActiveRolesByPermissionId(@Param("permissionId") Long permissionId);
+
+  @Query(
       """
         SELECT r FROM Role r
         JOIN r.permissions p

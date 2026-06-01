@@ -1,6 +1,8 @@
 package com.omnicore.identity.permission;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -14,8 +16,10 @@ import org.springframework.util.StringUtils;
 
 import com.omnicore.identity.common.MessageResolver;
 import com.omnicore.identity.common.PageResponse;
+import com.omnicore.identity.common.SecurityUtils;
 import com.omnicore.identity.common.constants.MessageKeys;
 import com.omnicore.identity.common.constants.PaginationDefaults;
+import com.omnicore.identity.rbac.AuthorityNames;
 import com.omnicore.identity.permission.dto.CreatePermissionRequest;
 import com.omnicore.identity.permission.dto.PermissionCreateResult;
 import com.omnicore.identity.permission.dto.PermissionDetailResponse;
@@ -42,9 +46,13 @@ public class PermissionService {
   private final PermissionValidator permissionValidator;
   private final PermissionDependencyValidator permissionDependencyValidator;
   private final MessageResolver messageResolver;
+  private final SecurityUtils securityUtils;
 
   @Transactional(readOnly = true)
   public PageResponse<PermissionListResponse> listPermissions(PermissionListQuery query) {
+    if (Boolean.FALSE.equals(query.isActive())) {
+      requireViewDeletedPermission();
+    }
     String keyword = normalizeKeyword(query.keyword());
     String module = normalizeFilterToken(query.module(), permissionValidator::normalizeModule);
     String action = normalizeFilterToken(query.action(), permissionValidator::normalizeAction);
@@ -78,9 +86,11 @@ public class PermissionService {
     }
 
     Permission permission =
-        permissionRepository
-            .findByIdAndDeletedAtIsNull(id)
-            .orElseThrow(PermissionNotFoundException::new);
+        permissionRepository.findById(id).orElseThrow(PermissionNotFoundException::new);
+
+    if (requiresViewDeletedPermission(permission)) {
+      requireViewDeletedPermission();
+    }
 
     return buildDetailResponse(permission);
   }
@@ -139,14 +149,55 @@ public class PermissionService {
     return updateCustomPermission(permission, request, currentUserId);
   }
 
+  @Transactional
   public void deletePermission(Long id, Long currentUserId) {
-    throw new UnsupportedOperationException(
-        messageResolver.resolve(MessageKeys.NOT_IMPLEMENTED_YET));
+    Permission permission =
+        permissionRepository.findById(id).orElseThrow(PermissionNotFoundException::new);
+
+    if (!permission.isActive()) {
+      throw new PermissionBusinessException(PermissionErrorCode.PERMISSION_INACTIVE);
+    }
+
+    if (permission.isSystem()) {
+      throw new PermissionBusinessException(
+          PermissionErrorCode.SYSTEM_PERMISSION_DELETE_NOT_ALLOWED);
+    }
+
+    if (rolePermissionRepository.countActiveRolesByPermissionId(id) > 0) {
+      throw new PermissionBusinessException(PermissionErrorCode.PERMISSION_ASSIGNED_TO_ROLE);
+    }
+
+    if (permissionDependencyRepository.countActiveParentsByDependencyPermissionId(id) > 0) {
+      throw new PermissionBusinessException(PermissionErrorCode.PERMISSION_USED_AS_DEPENDENCY);
+    }
+
+    // TODO: Block delete when active menus use this permission once Menu module exists.
+
+    permissionDependencyRepository.deleteByPermissionId(id);
+
+    Instant now = Instant.now();
+    permission.setActive(false);
+    permission.setDeletedAt(now);
+    permission.setDeletedBy(currentUserId);
+    permission.setUpdatedBy(currentUserId);
+    permissionRepository.save(permission);
   }
 
+  @Transactional
   public PermissionDetailResponse activatePermission(Long id, Long currentUserId) {
-    throw new UnsupportedOperationException(
-        messageResolver.resolve(MessageKeys.NOT_IMPLEMENTED_YET));
+    Permission permission =
+        permissionRepository.findById(id).orElseThrow(PermissionNotFoundException::new);
+
+    if (permission.isActive()) {
+      throw new PermissionBusinessException(PermissionErrorCode.PERMISSION_ALREADY_ACTIVE);
+    }
+
+    permission.setActive(true);
+    permission.setDeletedAt(null);
+    permission.setDeletedBy(null);
+    permission.setUpdatedBy(currentUserId);
+
+    return buildDetailResponse(permissionRepository.save(permission));
   }
 
   public PermissionDetailResponse replaceDependencies(
@@ -180,10 +231,7 @@ public class PermissionService {
 
   private PermissionDetailResponse updateSystemPermission(
       Permission permission, UpdatePermissionRequest request, Long currentUserId) {
-    if (attemptsRestrictedSystemUpdate(request)) {
-      throw new PermissionBusinessException(
-          PermissionErrorCode.SYSTEM_PERMISSION_UPDATE_RESTRICTED);
-    }
+    validateSystemPermissionUpdate(permission, request);
 
     if (request.description() != null) {
       String normalizedDescription = normalizeDescription(request.description());
@@ -238,11 +286,33 @@ public class PermissionService {
     }
   }
 
-  private boolean attemptsRestrictedSystemUpdate(UpdatePermissionRequest request) {
-    return request.name() != null
-        || request.module() != null
-        || request.action() != null
-        || request.dependencyIds() != null;
+  private void validateSystemPermissionUpdate(
+      Permission permission, UpdatePermissionRequest request) {
+    if (request.dependencyIds() != null) {
+      throw new PermissionBusinessException(
+          PermissionErrorCode.SYSTEM_PERMISSION_UPDATE_RESTRICTED);
+    }
+
+    if (request.name() != null
+        && !Objects.equals(
+            permissionValidator.normalizeName(request.name()), permission.getName())) {
+      throw new PermissionBusinessException(
+          PermissionErrorCode.SYSTEM_PERMISSION_UPDATE_RESTRICTED);
+    }
+
+    if (request.module() != null
+        && !Objects.equals(
+            permissionValidator.normalizeModule(request.module()), permission.getModule())) {
+      throw new PermissionBusinessException(
+          PermissionErrorCode.SYSTEM_PERMISSION_UPDATE_RESTRICTED);
+    }
+
+    if (request.action() != null
+        && !Objects.equals(
+            permissionValidator.normalizeAction(request.action()), permission.getAction())) {
+      throw new PermissionBusinessException(
+          PermissionErrorCode.SYSTEM_PERMISSION_UPDATE_RESTRICTED);
+    }
   }
 
   private Permission createNewPermission(
@@ -272,6 +342,16 @@ public class PermissionService {
     permission.setDescription(description);
     permission.setUpdatedBy(currentUserId);
     return permissionRepository.save(permission);
+  }
+
+  private void requireViewDeletedPermission() {
+    if (!securityUtils.hasAuthority(AuthorityNames.VIEW_DELETED_PERMISSION)) {
+      throw new PermissionBusinessException(PermissionErrorCode.VIEW_DELETED_PERMISSION_REQUIRED);
+    }
+  }
+
+  private boolean requiresViewDeletedPermission(Permission permission) {
+    return !permission.isActive() || permission.isDeleted();
   }
 
   private PermissionDetailResponse buildDetailResponse(Permission permission) {

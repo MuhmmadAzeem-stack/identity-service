@@ -40,6 +40,8 @@ class PermissionServiceUpdateTest {
 
   @Mock private com.omnicore.identity.common.MessageResolver messageResolver;
 
+  @Mock private com.omnicore.identity.common.SecurityUtils securityUtils;
+
   @InjectMocks private PermissionService permissionService;
 
   @Test
@@ -117,12 +119,64 @@ class PermissionServiceUpdateTest {
   }
 
   @Test
+  void updatePermissionShouldAllowSystemPermissionWhenIdentityFieldsUnchanged() {
+    Permission permission =
+        Permission.builder()
+            .id(9L)
+            .name("CREATE_USER")
+            .module("USER")
+            .action("CREATE")
+            .active(true)
+            .system(true)
+            .build();
+    UpdatePermissionRequest request =
+        new UpdatePermissionRequest(
+            "CREATE_USER", "USER", "CREATE", "Updated create user description", null);
+
+    when(permissionRepository.findByIdAndDeletedAtIsNull(9L)).thenReturn(Optional.of(permission));
+    when(permissionValidator.normalizeName("CREATE_USER")).thenReturn("CREATE_USER");
+    when(permissionValidator.normalizeModule("USER")).thenReturn("USER");
+    when(permissionValidator.normalizeAction("CREATE")).thenReturn("CREATE");
+    when(permissionRepository.save(permission)).thenReturn(permission);
+    stubDetailResponse(permission);
+
+    permissionService.updatePermission(9L, request, 1L);
+
+    assertEquals("Updated create user description", permission.getDescription());
+  }
+
+  @Test
   void updatePermissionShouldRejectSystemPermissionNameChange() {
     Permission permission =
-        Permission.builder().id(9L).name("CREATE_USER").active(true).system(true).build();
+        Permission.builder()
+            .id(9L)
+            .name("CREATE_USER")
+            .module("USER")
+            .action("CREATE")
+            .active(true)
+            .system(true)
+            .build();
     UpdatePermissionRequest request =
         new UpdatePermissionRequest(
             "CREATE_APP_USER", "APP_USER", "CREATE", "Trying to rename system permission", null);
+
+    when(permissionRepository.findByIdAndDeletedAtIsNull(9L)).thenReturn(Optional.of(permission));
+    when(permissionValidator.normalizeName("CREATE_APP_USER")).thenReturn("CREATE_APP_USER");
+
+    PermissionBusinessException exception =
+        assertThrows(
+            PermissionBusinessException.class,
+            () -> permissionService.updatePermission(9L, request, 1L));
+
+    assertEquals(PermissionErrorCode.SYSTEM_PERMISSION_UPDATE_RESTRICTED, exception.getErrorCode());
+  }
+
+  @Test
+  void updatePermissionShouldRejectSystemPermissionEmptyDependencyList() {
+    Permission permission =
+        Permission.builder().id(9L).name("CREATE_USER").active(true).system(true).build();
+    UpdatePermissionRequest request =
+        new UpdatePermissionRequest(null, null, null, "Updated description", List.of());
 
     when(permissionRepository.findByIdAndDeletedAtIsNull(9L)).thenReturn(Optional.of(permission));
 

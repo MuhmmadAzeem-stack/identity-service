@@ -37,7 +37,20 @@ public interface PermissionDependencyRepository extends Repository<Permission, L
   List<Permission> findActivePermissionsDependingOn(
       @Param("dependencyPermissionId") Long dependencyPermissionId);
 
-  @Modifying
+  @Query(
+      value =
+          """
+            SELECT COUNT(*) FROM permission_dependencies pd
+            INNER JOIN permissions p ON p.id = pd.permission_id
+            WHERE pd.dependency_permission_id = :dependencyPermissionId
+            AND p.is_active = true
+            AND p.deleted_at IS NULL
+            """,
+      nativeQuery = true)
+  long countActiveParentsByDependencyPermissionId(
+      @Param("dependencyPermissionId") Long dependencyPermissionId);
+
+  @Modifying(flushAutomatically = true)
   @Query(
       value = "DELETE FROM permission_dependencies WHERE permission_id = :permissionId",
       nativeQuery = true)

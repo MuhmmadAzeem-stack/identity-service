@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,9 +16,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.omnicore.identity.common.SecurityUtils;
 import com.omnicore.identity.permission.dto.PermissionDetailResponse;
 import com.omnicore.identity.permission.dto.PermissionSummaryResponse;
+import com.omnicore.identity.permission.error.PermissionBusinessException;
+import com.omnicore.identity.permission.error.PermissionErrorCode;
 import com.omnicore.identity.permission.error.PermissionNotFoundException;
+import com.omnicore.identity.rbac.AuthorityNames;
 import com.omnicore.identity.role.Role;
 import com.omnicore.identity.role.RolePermissionRepository;
 import com.omnicore.identity.role.dto.RoleSummaryResponse;
@@ -37,12 +42,20 @@ class PermissionServiceDetailTest {
 
   @Mock private com.omnicore.identity.common.MessageResolver messageResolver;
 
+  @Mock private SecurityUtils securityUtils;
+
   @InjectMocks private PermissionService permissionService;
 
   @Test
   void getPermissionDetailShouldFetchRelationsAndMapResponse() {
     Permission permission =
-        Permission.builder().id(9L).name("CREATE_USER").module("USER").action("CREATE").build();
+        Permission.builder()
+            .id(9L)
+            .name("CREATE_USER")
+            .module("USER")
+            .action("CREATE")
+            .active(true)
+            .build();
     Permission dependency = Permission.builder().id(14L).name("LIST_ROLE").build();
     Permission dependent = Permission.builder().id(9L).name("CREATE_USER").build();
     Role role = Role.builder().id(1L).name("SUPER_ADMIN").build();
@@ -71,7 +84,7 @@ class PermissionServiceDetailTest {
             List.of(dependentSummary),
             List.of(roleSummary));
 
-    when(permissionRepository.findByIdAndDeletedAtIsNull(9L)).thenReturn(Optional.of(permission));
+    when(permissionRepository.findById(9L)).thenReturn(Optional.of(permission));
     when(permissionDependencyRepository.findActiveDependenciesByPermissionId(9L))
         .thenReturn(List.of(dependency));
     when(permissionDependencyRepository.findActivePermissionsDependingOn(9L))
@@ -97,18 +110,71 @@ class PermissionServiceDetailTest {
 
   @Test
   void getPermissionDetailShouldThrowWhenPermissionNotFound() {
-    when(permissionRepository.findByIdAndDeletedAtIsNull(999999L)).thenReturn(Optional.empty());
+    when(permissionRepository.findById(999999L)).thenReturn(Optional.empty());
 
     assertThrows(
         PermissionNotFoundException.class, () -> permissionService.getPermissionDetail(999999L));
   }
 
   @Test
-  void getPermissionDetailShouldTreatSoftDeletedPermissionAsNotFound() {
-    when(permissionRepository.findByIdAndDeletedAtIsNull(5L)).thenReturn(Optional.empty());
+  void getPermissionDetailShouldRequireViewDeletedPermissionForSoftDeletedPermission() {
+    Permission permission =
+        Permission.builder()
+            .id(5L)
+            .name("EXPORT_USER")
+            .active(false)
+            .deletedAt(Instant.now())
+            .build();
 
-    assertThrows(
-        PermissionNotFoundException.class, () -> permissionService.getPermissionDetail(5L));
+    when(permissionRepository.findById(5L)).thenReturn(Optional.of(permission));
+    when(securityUtils.hasAuthority(AuthorityNames.VIEW_DELETED_PERMISSION)).thenReturn(false);
+
+    PermissionBusinessException exception =
+        assertThrows(
+            PermissionBusinessException.class, () -> permissionService.getPermissionDetail(5L));
+
+    assertEquals(PermissionErrorCode.VIEW_DELETED_PERMISSION_REQUIRED, exception.getErrorCode());
+  }
+
+  @Test
+  void getPermissionDetailShouldReturnSoftDeletedPermissionWhenAuthorized() {
+    Permission permission =
+        Permission.builder()
+            .id(5L)
+            .name("EXPORT_USER")
+            .active(false)
+            .deletedAt(Instant.now())
+            .build();
+    PermissionDetailResponse detailResponse =
+        new PermissionDetailResponse(
+            5L,
+            "EXPORT_USER",
+            "USER",
+            "EXPORT",
+            null,
+            false,
+            false,
+            null,
+            null,
+            null,
+            null,
+            List.of(),
+            List.of(),
+            List.of());
+
+    when(permissionRepository.findById(5L)).thenReturn(Optional.of(permission));
+    when(securityUtils.hasAuthority(AuthorityNames.VIEW_DELETED_PERMISSION)).thenReturn(true);
+    when(permissionDependencyRepository.findActiveDependenciesByPermissionId(5L))
+        .thenReturn(List.of());
+    when(permissionDependencyRepository.findActivePermissionsDependingOn(5L))
+        .thenReturn(List.of());
+    when(rolePermissionRepository.findActiveRolesByPermissionId(5L)).thenReturn(List.of());
+    when(permissionMapper.toDetailResponse(permission, List.of(), List.of(), List.of()))
+        .thenReturn(detailResponse);
+
+    PermissionDetailResponse result = permissionService.getPermissionDetail(5L);
+
+    assertSame(detailResponse, result);
   }
 
   @Test

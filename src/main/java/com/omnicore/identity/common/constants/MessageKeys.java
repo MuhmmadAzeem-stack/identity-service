@@ -8,10 +8,19 @@ public final class MessageKeys {
   public static final String PERMISSION_CREATED = "permission.create.success";
   public static final String PERMISSION_REACTIVATED = "permission.reactivate.success";
   public static final String PERMISSION_UPDATED = "permission.update.success";
+  public static final String PERMISSION_DELETED = "permission.delete.success";
+  public static final String PERMISSION_ACTIVATED = "permission.activate.success";
   public static final String PERMISSION_ALREADY_EXISTS = "permission.alreadyExists";
   public static final String PERMISSION_INACTIVE = "permission.inactive";
+  public static final String PERMISSION_ALREADY_ACTIVE = "permission.alreadyActive";
   public static final String SYSTEM_PERMISSION_UPDATE_RESTRICTED =
       "permission.systemUpdateRestricted";
+  public static final String SYSTEM_PERMISSION_DELETE_NOT_ALLOWED =
+      "permission.systemDeleteNotAllowed";
+  public static final String PERMISSION_ASSIGNED_TO_ROLE = "permission.assignedToRole";
+  public static final String PERMISSION_USED_AS_DEPENDENCY = "permission.usedAsDependency";
+  public static final String VIEW_DELETED_PERMISSION_REQUIRED =
+      "permission.viewDeletedRequired";
   public static final String INVALID_PERMISSION_NAME_FORMAT = "permission.invalidNameFormat";
   public static final String DEPENDENCY_PERMISSION_NOT_FOUND = "permission.dependencyNotFound";
   public static final String DEPENDENCY_PERMISSION_INACTIVE = "permission.dependencyInactive";
