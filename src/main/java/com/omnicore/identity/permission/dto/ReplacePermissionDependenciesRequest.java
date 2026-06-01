@@ -1,10 +1,7 @@
 package com.omnicore.identity.permission.dto;
 
-import jakarta.validation.constraints.NotNull;
-
 import java.util.List;
 
-public record ReplacePermissionDependenciesRequest(
-    @NotNull List<Long> dependencyIds
-) {
-}
+import jakarta.validation.constraints.NotNull;
+
+public record ReplacePermissionDependenciesRequest(@NotNull List<Long> dependencyIds) {}

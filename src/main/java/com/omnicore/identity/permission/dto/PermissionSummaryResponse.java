@@ -7,6 +7,4 @@ public record PermissionSummaryResponse(
     String action,
     String description,
     boolean active,
-    boolean system
-) {
-}
+    boolean system) {}

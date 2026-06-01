@@ -1,43 +1,48 @@
 package com.omnicore.identity.security;
 
-import com.omnicore.identity.common.constants.JwtClaims;
-import com.omnicore.identity.permission.EffectivePermissionResolver;
-import com.omnicore.identity.role.Role;
-import lombok.RequiredArgsConstructor;
+import java.time.Instant;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.omnicore.identity.common.constants.JwtClaims;
+import com.omnicore.identity.permission.EffectivePermissionResolver;
+import com.omnicore.identity.role.Role;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class JwtService {
 
-    private final JwtEncoder jwtEncoder;
-    private final EffectivePermissionResolver effectivePermissionResolver;
+  private final JwtEncoder jwtEncoder;
+  private final EffectivePermissionResolver effectivePermissionResolver;
 
-    @Value("${app.jwt.issuer}")
-    private String issuer;
+  @Value("${app.jwt.issuer}")
+  private String issuer;
 
-    @Value("${app.jwt.access-token-minutes}")
-    private long accessTokenMinutes;
+  @Value("${app.jwt.access-token-minutes}")
+  private long accessTokenMinutes;
 
-    public String generateToken(CustomUserDetails userDetails) {
-        Instant now = Instant.now();
-        Instant expiresAt = now.plusSeconds(accessTokenMinutes * 60);
+  public String generateToken(CustomUserDetails userDetails) {
+    Instant now = Instant.now();
+    Instant expiresAt = now.plusSeconds(accessTokenMinutes * 60);
 
-        Set<String> roles = userDetails.getUser().getRoles().stream()
+    Set<String> roles =
+        userDetails.getUser().getRoles().stream()
             .filter(role -> role.isActive() && !role.isDeleted())
             .map(Role::getName)
             .collect(Collectors.toSet());
 
-        Set<String> permissions = effectivePermissionResolver.resolvePermissionNames(userDetails.getUser());
+    Set<String> permissions =
+        effectivePermissionResolver.resolvePermissionNames(userDetails.getUser());
 
-        JwtClaimsSet claims = JwtClaimsSet.builder()
+    JwtClaimsSet claims =
+        JwtClaimsSet.builder()
             .issuer(issuer)
             .issuedAt(now)
             .expiresAt(expiresAt)
@@ -48,14 +53,12 @@ public class JwtService {
             .claim(JwtClaims.CLAIM_TOKEN_VERSION, userDetails.getUser().getTokenVersion())
             .build();
 
-        JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
+    JwsHeader header = JwsHeader.with(MacAlgorithm.HS256).build();
 
-        return jwtEncoder
-            .encode(JwtEncoderParameters.from(header, claims))
-            .getTokenValue();
-    }
+    return jwtEncoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
+  }
 
-    public long getExpiresInSeconds() {
-        return accessTokenMinutes * 60;
-    }
+  public long getExpiresInSeconds() {
+    return accessTokenMinutes * 60;
+  }
 }

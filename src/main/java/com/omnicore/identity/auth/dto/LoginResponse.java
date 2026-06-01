@@ -8,6 +8,4 @@ public record LoginResponse(
     AuthUserResponse user,
     List<String> roles,
     List<String> permissions,
-    int tokenVersion
-) {
-}
+    int tokenVersion) {}
