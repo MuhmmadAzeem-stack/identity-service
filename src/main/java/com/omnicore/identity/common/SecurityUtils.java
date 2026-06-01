@@ -1,6 +1,7 @@
 package com.omnicore.identity.common;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
@@ -21,5 +22,16 @@ public class SecurityUtils {
       throw new IllegalStateException(messageResolver.resolve(MessageKeys.NO_AUTHENTICATED_USER));
     }
     return Long.parseLong(jwt.getSubject());
+  }
+
+  public boolean hasAuthority(String authority) {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication == null) {
+      return false;
+    }
+
+    return authentication.getAuthorities().stream()
+        .map(GrantedAuthority::getAuthority)
+        .anyMatch(authority::equals);
   }
 }

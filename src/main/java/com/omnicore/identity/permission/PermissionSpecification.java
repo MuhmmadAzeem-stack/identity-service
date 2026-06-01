@@ -19,11 +19,13 @@ public final class PermissionSpecification {
     return (root, query, criteriaBuilder) -> {
       List<Predicate> predicates = new ArrayList<>();
 
-      // Soft-deleted permissions are never listed, including when isActive=false.
-      predicates.add(notDeleted(root, criteriaBuilder));
-
       boolean activeValue = active != null ? active : true;
       predicates.add(criteriaBuilder.equal(root.get("active"), activeValue));
+
+      // Soft-deleted permissions appear only when explicitly filtering inactive records.
+      if (active == null || active) {
+        predicates.add(notDeleted(root, criteriaBuilder));
+      }
 
       if (system != null) {
         predicates.add(criteriaBuilder.equal(root.get("system"), system));

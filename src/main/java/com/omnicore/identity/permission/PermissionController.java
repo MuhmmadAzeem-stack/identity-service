@@ -90,4 +90,21 @@ public class PermissionController {
 
     return ApiResponse.success(messageResolver.resolve(MessageKeys.PERMISSION_UPDATED), data);
   }
+
+  @DeleteMapping("/{id}")
+  @PreAuthorize(SecurityExpressions.HAS_DELETE_PERMISSION)
+  public ApiResponse<Void> deletePermission(@PathVariable Long id) {
+    permissionService.deletePermission(id, securityUtils.getCurrentUserId());
+
+    return ApiResponse.success(messageResolver.resolve(MessageKeys.PERMISSION_DELETED), null);
+  }
+
+  @PutMapping("/{id}/activate")
+  @PreAuthorize(SecurityExpressions.HAS_UPDATE_PERMISSION)
+  public ApiResponse<PermissionDetailResponse> activatePermission(@PathVariable Long id) {
+    PermissionDetailResponse data =
+        permissionService.activatePermission(id, securityUtils.getCurrentUserId());
+
+    return ApiResponse.success(messageResolver.resolve(MessageKeys.PERMISSION_ACTIVATED), data);
+  }
 }

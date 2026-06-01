@@ -36,6 +36,10 @@ public final class CorePermissionSeeds {
         permission(RbacAction.UPDATE, RbacModule.PERMISSION, "Update permissions"),
         permission(RbacAction.DELETE, RbacModule.PERMISSION, "Delete permissions"),
         permission(
+            RbacAction.VIEW_DELETED,
+            RbacModule.PERMISSION,
+            "Allows viewing inactive/deleted permissions"),
+        permission(
             RbacAction.ASSIGN, RbacModule.PERMISSION_DEPENDENCY, "Assign permission dependencies"),
         permission(
             RbacAction.REMOVE, RbacModule.PERMISSION_DEPENDENCY, "Remove permission dependencies"),

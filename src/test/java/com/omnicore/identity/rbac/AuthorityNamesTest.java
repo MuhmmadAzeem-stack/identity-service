@@ -33,4 +33,11 @@ class AuthorityNamesTest {
         AuthorityNames.authority(RbacAction.ASSIGN, RbacModule.PERMISSION_DEPENDENCY),
         AuthorityNames.ASSIGN_PERMISSION_DEPENDENCY);
   }
+
+  @Test
+  void viewDeletedPermissionShouldMatchGeneratedValue() {
+    assertEquals(
+        AuthorityNames.authority(RbacAction.VIEW_DELETED, RbacModule.PERMISSION),
+        AuthorityNames.VIEW_DELETED_PERMISSION);
+  }
 }

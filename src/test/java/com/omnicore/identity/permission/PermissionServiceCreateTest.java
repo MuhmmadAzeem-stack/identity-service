@@ -42,6 +42,8 @@ class PermissionServiceCreateTest {
 
   @Mock private com.omnicore.identity.common.MessageResolver messageResolver;
 
+  @Mock private com.omnicore.identity.common.SecurityUtils securityUtils;
+
   @InjectMocks private PermissionService permissionService;
 
   @Test
